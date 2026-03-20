@@ -1,81 +1,463 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-    <meta charset="UTF-8">
-    <title>BMI Calculator</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: #f4f4f4;
-            text-align: center;
-            margin-top: 100px;
-        }
-        .container {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            width: 300px;
-            margin: auto;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        }
-        input {
-            width: 90%;
-            padding: 8px;
-            margin: 10px 0;
-        }
-        button {
-            padding: 10px 20px;
-            cursor: pointer;
-        }
-        #result {
-            margin-top: 15px;
-            font-weight: bold;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BMI Calculator</title>
+<link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #13131a;
+    --card: #1c1c27;
+    --border: rgba(255,255,255,0.07);
+    --text: #f0eeff;
+    --muted: rgba(240,238,255,0.45);
+    --accent: #a78bfa;
+    --accent-glow: rgba(167,139,250,0.25);
+    --thin: #6d28d9;
+
+    --c-lean: #34d399;
+    --c-normal: #60a5fa;
+    --c-over: #fbbf24;
+    --c-obese: #f87171;
+    --c-very-obese: #ef4444;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Kanit', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 60% 50% at 20% 20%, rgba(109,40,217,0.18) 0%, transparent 70%),
+      radial-gradient(ellipse 50% 60% at 80% 80%, rgba(167,139,250,0.12) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .wrap {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 460px;
+    padding: 24px 16px;
+  }
+
+  .header {
+    text-align: center;
+    margin-bottom: 36px;
+  }
+
+  .header .eyebrow {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    opacity: 0.9;
+  }
+
+  .header h1 {
+    font-size: 42px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1;
+    background: linear-gradient(135deg, #f0eeff 30%, #a78bfa 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .header p {
+    margin-top: 10px;
+    font-size: 15px;
+    font-weight: 300;
+    color: var(--muted);
+  }
+
+  .card {
+    background: var(--card);
+    border: 0.5px solid var(--border);
+    border-radius: 24px;
+    padding: 32px 28px;
+    backdrop-filter: blur(8px);
+  }
+
+  .input-group {
+    margin-bottom: 22px;
+  }
+
+  label {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--muted);
+    margin-bottom: 8px;
+    letter-spacing: 0.04em;
+  }
+
+  label .unit {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    opacity: 0.7;
+  }
+
+  .input-row {
+    display: flex;
+    align-items: center;
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+
+  .input-row:focus-within {
+    border-color: rgba(167,139,250,0.5);
+    box-shadow: 0 0 0 3px rgba(167,139,250,0.08);
+  }
+
+  input[type="number"] {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    padding: 14px 18px;
+    font-family: 'Space Mono', monospace;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text);
+    width: 100%;
+    -moz-appearance: textfield;
+  }
+
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
+
+  .unit-badge {
+    padding: 0 18px;
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    color: var(--accent);
+    font-weight: 700;
+    border-left: 0.5px solid var(--border);
+    height: 100%;
+    display: flex;
+    align-items: center;
+    background: rgba(167,139,250,0.06);
+  }
+
+  .btn {
+    width: 100%;
+    padding: 16px;
+    background: var(--accent);
+    color: #1a0d40;
+    border: none;
+    border-radius: 14px;
+    font-family: 'Kanit', sans-serif;
+    font-size: 17px;
+    font-weight: 600;
+    cursor: pointer;
+    letter-spacing: 0.03em;
+    transition: transform 0.15s, box-shadow 0.15s, background 0.15s;
+    margin-top: 6px;
+    box-shadow: 0 4px 24px rgba(167,139,250,0.3);
+  }
+
+  .btn:hover {
+    background: #c4b5fd;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 30px rgba(167,139,250,0.4);
+  }
+
+  .btn:active { transform: translateY(0); }
+
+  /* Result */
+  .result {
+    margin-top: 28px;
+    display: none;
+    animation: slideUp 0.4s cubic-bezier(0.22,1,0.36,1);
+  }
+
+  .result.show { display: block; }
+
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .bmi-display {
+    text-align: center;
+    padding: 28px 0 20px;
+    border-bottom: 0.5px solid var(--border);
+    margin-bottom: 20px;
+  }
+
+  .bmi-label-small {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  .bmi-value {
+    font-family: 'Space Mono', monospace;
+    font-size: 64px;
+    font-weight: 700;
+    line-height: 1;
+    transition: color 0.4s;
+  }
+
+  .bmi-category {
+    font-size: 22px;
+    font-weight: 600;
+    margin-top: 10px;
+    transition: color 0.4s;
+  }
+
+  .bmi-desc {
+    font-size: 13px;
+    font-weight: 300;
+    color: var(--muted);
+    margin-top: 6px;
+  }
+
+  /* Gauge bar */
+  .gauge-wrap {
+    margin-bottom: 20px;
+  }
+
+  .gauge-track {
+    height: 8px;
+    border-radius: 99px;
+    background: linear-gradient(to right,
+      #34d399 0%, #34d399 18.5%,
+      #60a5fa 18.5%, #60a5fa 55%,
+      #fbbf24 55%, #fbbf24 72.5%,
+      #f87171 72.5%, #f87171 87.5%,
+      #ef4444 87.5%, #ef4444 100%);
+    position: relative;
+    margin-bottom: 8px;
+  }
+
+  .gauge-needle {
+    position: absolute;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: white;
+    border: 2px solid var(--bg);
+    box-shadow: 0 0 0 2px white;
+    transition: left 0.5s cubic-bezier(0.34,1.56,0.64,1);
+  }
+
+  .gauge-labels {
+    display: flex;
+    justify-content: space-between;
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+  }
+
+  /* Stats row */
+  .stats-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .stat-box {
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: 14px;
+    padding: 14px 16px;
+  }
+
+  .stat-box .s-label {
+    font-size: 11px;
+    color: var(--muted);
+    font-weight: 400;
+    margin-bottom: 4px;
+  }
+
+  .stat-box .s-val {
+    font-family: 'Space Mono', monospace;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .reset-btn {
+    width: 100%;
+    margin-top: 20px;
+    padding: 12px;
+    background: transparent;
+    border: 0.5px solid var(--border);
+    border-radius: 12px;
+    color: var(--muted);
+    font-family: 'Kanit', sans-serif;
+    font-size: 14px;
+    cursor: pointer;
+    transition: border-color 0.2s, color 0.2s;
+  }
+
+  .reset-btn:hover { border-color: rgba(167,139,250,0.4); color: var(--accent); }
+</style>
 </head>
 <body>
+<div class="wrap">
+  <div class="header">
+    <div class="eyebrow">Health Monitor</div>
+    <h1>BMI</h1>
+    <p>ดัชนีมวลกาย — Body Mass Index</p>
+  </div>
 
-<div class="container">
-    <h2>คำนวณ BMI</h2>
+  <div class="card">
+    <div class="input-group">
+      <label>น้ำหนัก <span class="unit">WEIGHT</span></label>
+      <div class="input-row">
+        <input type="number" id="weight" placeholder="65" min="1" max="300" step="0.1">
+        <div class="unit-badge">kg</div>
+      </div>
+    </div>
 
-    <input type="number" id="weight" placeholder="น้ำหนัก (kg)">
-    <input type="number" id="height" placeholder="ส่วนสูง (cm)">
+    <div class="input-group">
+      <label>ส่วนสูง <span class="unit">HEIGHT</span></label>
+      <div class="input-row">
+        <input type="number" id="height" placeholder="170" min="50" max="250" step="0.1">
+        <div class="unit-badge">cm</div>
+      </div>
+    </div>
 
-    <button onclick="calculateBMI()">คำนวณ</button>
+    <button class="btn" onclick="calculate()">คำนวณ BMI</button>
 
-    <div id="result"></div>
+    <div class="result" id="result">
+      <div class="bmi-display">
+        <div class="bmi-label-small">BMI ของคุณ</div>
+        <div class="bmi-value" id="bmiVal">—</div>
+        <div class="bmi-category" id="bmiCat"></div>
+        <div class="bmi-desc" id="bmiDesc"></div>
+      </div>
+
+      <div class="gauge-wrap">
+        <div class="gauge-track">
+          <div class="gauge-needle" id="needle" style="left:0%"></div>
+        </div>
+        <div class="gauge-labels">
+          <span>ผอม</span>
+          <span>ปกติ</span>
+          <span>น้ำหนักเกิน</span>
+          <span>อ้วน</span>
+          <span>อ้วนมาก</span>
+        </div>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat-box">
+          <div class="s-label">น้ำหนักที่เหมาะสม</div>
+          <div class="s-val" id="idealWeight">—</div>
+        </div>
+        <div class="stat-box">
+          <div class="s-label">ช่วง BMI ปกติ</div>
+          <div class="s-val">18.5 – 22.9</div>
+        </div>
+      </div>
+
+      <button class="reset-btn" onclick="reset()">เริ่มใหม่</button>
+    </div>
+  </div>
 </div>
 
 <script>
-function calculateBMI() {
-    let weight = document.getElementById("weight").value;
-    let height = document.getElementById("height").value;
+  function calculate() {
+    const w = parseFloat(document.getElementById('weight').value);
+    const h = parseFloat(document.getElementById('height').value);
 
-    if (weight === "" || height === "") {
-        document.getElementById("result").innerText = "กรุณากรอกข้อมูลให้ครบ";
-        return;
+    if (!w || !h || w <= 0 || h <= 0) {
+      alert('กรุณากรอกน้ำหนักและส่วนสูงให้ถูกต้อง');
+      return;
     }
 
-    height = height / 100; // แปลง cm เป็น m
-    let bmi = weight / (height * height);
-    let status = "";
+    const hm = h / 100;
+    const bmi = w / (hm * hm);
+    const bmiFixed = bmi.toFixed(1);
+
+    let cat, desc, color, needlePct;
 
     if (bmi < 18.5) {
-        status = "ผอม";
+      cat = 'ผอม / ต่ำกว่าเกณฑ์';
+      desc = 'น้ำหนักน้อยกว่าเกณฑ์ ควรเพิ่มน้ำหนักและดูแลโภชนาการ';
+      color = '#34d399';
+      needlePct = Math.max(2, (bmi / 18.5) * 18.5);
     } else if (bmi < 23) {
-        status = "ปกติ";
+      cat = 'ปกติ / สุขภาพดี';
+      desc = 'น้ำหนักอยู่ในเกณฑ์ที่เหมาะสม ดูแลสุขภาพต่อไปเลย!';
+      color = '#60a5fa';
+      needlePct = 18.5 + ((bmi - 18.5) / 4.5) * 36.5;
     } else if (bmi < 25) {
-        status = "น้ำหนักเกิน";
+      cat = 'น้ำหนักเกิน';
+      desc = 'น้ำหนักเกินเกณฑ์เล็กน้อย ควรออกกำลังกายและปรับอาหาร';
+      color = '#fbbf24';
+      needlePct = 55 + ((bmi - 23) / 2) * 17.5;
     } else if (bmi < 30) {
-        status = "อ้วน";
+      cat = 'อ้วน';
+      desc = 'อยู่ในเกณฑ์อ้วน ควรปรึกษาแพทย์และปรับพฤติกรรม';
+      color = '#f87171';
+      needlePct = 72.5 + ((bmi - 25) / 5) * 15;
     } else {
-        status = "อ้วนมาก";
+      cat = 'อ้วนมาก';
+      desc = 'อยู่ในเกณฑ์อ้วนมาก ควรพบแพทย์เพื่อวางแผนสุขภาพ';
+      color = '#ef4444';
+      needlePct = Math.min(98, 87.5 + ((bmi - 30) / 10) * 12.5);
     }
 
-    document.getElementById("result").innerText =
-        "BMI = " + bmi.toFixed(2) + " (" + status + ")";
-}
-</script>
+    const idealMin = (18.5 * hm * hm).toFixed(1);
+    const idealMax = (22.9 * hm * hm).toFixed(1);
 
+    document.getElementById('bmiVal').textContent = bmiFixed;
+    document.getElementById('bmiVal').style.color = color;
+    document.getElementById('bmiCat').textContent = cat;
+    document.getElementById('bmiCat').style.color = color;
+    document.getElementById('bmiDesc').textContent = desc;
+    document.getElementById('idealWeight').textContent = idealMin + '–' + idealMax + ' kg';
+    document.getElementById('needle').style.left = needlePct + '%';
+
+    const resultEl = document.getElementById('result');
+    resultEl.classList.remove('show');
+    void resultEl.offsetWidth;
+    resultEl.classList.add('show');
+  }
+
+  function reset() {
+    document.getElementById('weight').value = '';
+    document.getElementById('height').value = '';
+    document.getElementById('result').classList.remove('show');
+  }
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') calculate();
+  });
+</script>
 </body>
 </html>
